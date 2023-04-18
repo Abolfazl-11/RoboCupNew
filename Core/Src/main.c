@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "pixy.h"
+#include "mpu6050.h"
 
 /* USER CODE END Includes */
 
@@ -37,6 +38,21 @@
 BallTransform ballTransform;
 int ballInView = 0;
 int pixyChecked = 0;
+
+// MPU6050 Variables
+MPU6050_t mpu6050;
+float gx, gy, gz;
+float RateCalibrationRoll = 0, RateCalibrationPitch = 0, RateCalibrationYaw = 0;
+float sx, sy, sz;
+typedef struct GY {
+	float x;
+	float y;
+	float z;
+} GY;
+
+GY Gy = {0, 0, 0};
+
+int MPUCollibrated = 0;
 
 // counter for the timer
 uint32_t timcounter = 0;
@@ -62,9 +78,48 @@ uint32_t timcounter = 0;
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
+void CollibrateMPU6050(int samples) {
+	for (int RateCalibrationNumber=0; RateCalibrationNumber < samples; RateCalibrationNumber++) {
+	    MPU6050_Read_All(&hi2c2, &mpu6050, 0, 0, 0);
+	    RateCalibrationRoll+=mpu6050.Gx;
+	    RateCalibrationPitch+=mpu6050.Gy;
+	    RateCalibrationYaw+=mpu6050.Gz;
+	    HAL_Delay(1);
+	}
+	RateCalibrationRoll/=samples;
+	RateCalibrationPitch/=samples;
+	RateCalibrationYaw/=samples;
+
+	MPUCollibrated = 1;
+}
+
+void SetupMPU6050(int cSamples) {
+	  while (MPU6050_Init(&hi2c2) == 1);
+
+	  CollibrateMPU6050(cSamples);
+
+	  HAL_Delay(500);
+}
+
+void ReadMPU6050() {
+	MPU6050_Read_All(&hi2c2, &mpu6050, RateCalibrationRoll, RateCalibrationPitch, RateCalibrationYaw);
+
+	sx += mpu6050.Gx;
+	sy += mpu6050.Gy;
+	sz += mpu6050.Gz;
+
+	Gy.x = sx / 2000;
+	Gy.y = sy / 2000;
+	Gy.z = sz / 2000;
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if(timcounter % 200 == 0 && pixyChecked) {
 		getBallPosition(&ballTransform, &ballInView);
+	}
+
+	if(timcounter % 2 == 0 && MPUCollibrated) {
+		ReadMPU6050();
 	}
 
 	timcounter++;
@@ -117,6 +172,19 @@ int main(void)
   HAL_TIM_Base_Start(&htim2);
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_Base_Start_IT(&htim4);
+
+  // setting up PWM
+  TIM1->CCR2 = 0;
+  TIM1->CCR3 = 0;
+  TIM1->CCR4 = 0;
+  TIM2->CCR4 = 0;
+
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+
+  SetupMPU6050(500);
 
   SetupPixy(&pixyChecked);
 
