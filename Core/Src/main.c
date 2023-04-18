@@ -28,6 +28,7 @@
 
 #include "pixy.h"
 #include "mpu6050.h"
+#include "Motors.h"
 
 /* USER CODE END Includes */
 
@@ -49,8 +50,9 @@ typedef struct GY {
 	float y;
 	float z;
 } GY;
-
 GY Gy = {0, 0, 0};
+
+Motors_t Motors = {0, 0, 0, 0, 0, 0, 0, 0};
 
 int MPUCollibrated = 0;
 
@@ -139,7 +141,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -187,6 +188,8 @@ int main(void)
   SetupMPU6050(500);
 
   SetupPixy(&pixyChecked);
+
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
   /* USER CODE END 2 */
 
