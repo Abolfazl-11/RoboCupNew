@@ -26,10 +26,20 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "pixy.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+
+// Pixy Variables
+BallTransform ballTransform;
+int ballInView = 0;
+int pixyChecked = 0;
+
+// counter for the timer
+uint32_t timcounter = 0;
 
 /* USER CODE END PTD */
 
@@ -51,6 +61,14 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if(timcounter % 200 == 0 && pixyChecked) {
+		getBallPosition(&ballTransform, &ballInView);
+	}
+
+	timcounter++;
+}
 
 /* USER CODE END PFP */
 
@@ -94,6 +112,13 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
+  HAL_TIM_Base_Start(&htim1);
+  HAL_TIM_Base_Start(&htim2);
+  HAL_TIM_Base_Start(&htim3);
+  HAL_TIM_Base_Start_IT(&htim4);
+
+  SetupPixy(&pixyChecked);
 
   /* USER CODE END 2 */
 

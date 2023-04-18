@@ -1,0 +1,2 @@
+../Core/Src/pixy.c:30:6:SetupPixy	16	static
+../Core/Src/pixy.c:41:6:getBallPosition	24	static
