@@ -54,5 +54,5 @@ void setPWM(MotorDef_t *Motor, uint32_t pwm, int en, Motors_t *Motors);
 
 // this function gets the teta and speed and set the speed of each motor
 // in a way that the robot will move in the angle of inputed teta
-void GotoPoint(int teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorDefs);
+void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorDefs);
 #endif /* INC_MOTORS_H_ */

@@ -81,3 +81,44 @@ void RotateToZero(double e, double *pve, Motors_t *Motors, Motor_Defs *MotorDefs
 
 	*pve = e;
 }
+
+// this function gets the X and Y coordinate of the ball and
+// converts them into polar coordinates then checks and sets the current zone
+// and sets the motors with "GotoPoint" function from the "Motors.h" header
+void GetBall(int x, int y, uint32_t speed, enum Zones *zone, Motors_t *Motors, Motor_Defs *MotorDefs) {
+	double teta;
+	double r;
+
+	if (x >= 0) teta = -(atan((double)y / x) * RAD_TO_DEG - 90);
+	else if (x < 0) teta = -((atan((double)y/ x) + PI)* RAD_TO_DEG - 90);
+
+	r = sqrt(x * x + y * y);
+
+	if (r >= ZONEDIS_TH) {
+		*zone = FAR;
+	}
+	else if (r < ZONEDIS_TH) {
+		if (abs(teta) > GETBALLANGLE_TH) {
+			*zone = CLOSE;
+		}
+		else {
+			*zone = BALLIN;
+		}
+	}
+
+	switch (*zone) {
+	case FAR:
+		GotoPoint(teta, speed, Motors, MotorDefs);
+		break;
+	case CLOSE:
+		if (teta >= 0) {
+			GotoPoint(teta + 30, speed, Motors, MotorDefs);
+		}
+		else {
+			GotoPoint(teta - 30, speed, Motors, MotorDefs);
+		}
+		break;
+	case BALLIN:
+		GotoPoint(0, speed + 5, Motors, MotorDefs);
+	}
+}

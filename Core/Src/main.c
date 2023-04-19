@@ -29,6 +29,7 @@
 #include "pixy.h"
 #include "mpu6050.h"
 #include "Motors.h"
+#include "Movement.h"
 
 /* USER CODE END Includes */
 
@@ -79,7 +80,10 @@ Motor_Defs MotorDefs = {
 	&Motor_4
 };
 
-float pve = 0;
+// PID Control Derivative
+double pve = 0;
+
+enum Zones zone = FAR;
 
 int MPUCollibrated = 0;
 
@@ -173,7 +177,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+   HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -233,6 +237,10 @@ int main(void)
 		  setPWM(&Motor_2, Motors.pwm2, Motors.e2, &Motors);
 		  setPWM(&Motor_3, Motors.pwm3, Motors.e3, &Motors);
 		  setPWM(&Motor_4, Motors.pwm4, Motors.e4, &Motors);
+	  }
+
+	  if (ballInView) {
+		  GetBall(ballTransform.ballx, ballTransform.bally, 35, &zone, &Motors, &MotorDefs);
 	  }
     /* USER CODE BEGIN 3 */
   }

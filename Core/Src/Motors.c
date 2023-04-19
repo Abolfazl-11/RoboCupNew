@@ -44,7 +44,7 @@ void setPWM(MotorDef_t *Motor, uint32_t pwm, int en, Motors_t *Motors) {
 // offset angle of each motor
 int offsets[] = {-45, -135, 135, 45};
 
-void GotoPoint(int teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorDefs) {
+void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorDefs) {
 	for (int i = 0; i < 4; ++i) {
 		double t = teta + offsets[i];
 		double s = sin(t * DEG_TO_RAD) * speed;
