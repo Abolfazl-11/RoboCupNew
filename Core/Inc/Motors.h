@@ -23,13 +23,13 @@
 // this struct contains the PWM speed and
 // enable pin state for each motor
 typedef struct Motors_t {
-	uint16_t pwm1;
+	uint32_t pwm1;
 	int e1;
-	uint16_t pwm2;
+	uint32_t pwm2;
 	int e2;
-	uint16_t pwm3;
+	uint32_t pwm3;
 	int e3;
-	uint16_t pwm4;
+	uint32_t pwm4;
 	int e4;
 } Motors_t;
 
@@ -41,6 +41,12 @@ typedef struct MotorDef_t {
 	GPIO_TypeDef *in1_port;
 } MotorDef_t;
 
+typedef struct MotorsDefs {
+	MotorDef_t *Motor_1;
+	MotorDef_t *Motor_2;
+	MotorDef_t *Motor_3;
+	MotorDef_t *Motor_4;
+} Motor_Defs;
 // this function sets the enable pin and PWM speed for motors
 // it gets the motor  definition struct of the motor and the PWM speed
 // an the enable state and set them to the motor and store the values in the "Motors" struct
@@ -48,5 +54,5 @@ void setPWM(MotorDef_t *Motor, uint32_t pwm, int en, Motors_t *Motors);
 
 // this function gets the teta and speed and set the speed of each motor
 // in a way that the robot will move in the angle of inputed teta
-void GotoPoint(int teta, uint32_t speed, Motors_t *Motors);
+void GotoPoint(int teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorDefs);
 #endif /* INC_MOTORS_H_ */

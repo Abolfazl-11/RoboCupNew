@@ -52,7 +52,34 @@ typedef struct GY {
 } GY;
 GY Gy = {0, 0, 0};
 
-Motors_t Motors = {0, 0, 0, 0, 0, 0, 0, 0};
+// Motors Variables
+Motors_t Motors = {
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		1
+};
+
+MotorDef_t Motor_1 = {1, 2, GPIO_PIN_8, GPIOA};
+
+MotorDef_t Motor_2 = {1, 3, GPIO_PIN_4, GPIOA};
+
+MotorDef_t Motor_3 = {2, 4, GPIO_PIN_12, GPIOA};
+
+MotorDef_t Motor_4 = {1, 4, GPIO_PIN_6, GPIOA};
+
+Motor_Defs MotorDefs = {
+	&Motor_1,
+	&Motor_2,
+	&Motor_3,
+	&Motor_4
+};
+
+float pve = 0;
 
 int MPUCollibrated = 0;
 
@@ -198,7 +225,15 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  if (abs(Gy.z) > 2) {
+		  RotateToZero(Gy.z, &pve, &Motors, &MotorDefs);
+	  }
+	  else {
+		  setPWM(&Motor_1, Motors.pwm1, Motors.e1, &Motors);
+		  setPWM(&Motor_2, Motors.pwm2, Motors.e2, &Motors);
+		  setPWM(&Motor_3, Motors.pwm3, Motors.e3, &Motors);
+		  setPWM(&Motor_4, Motors.pwm4, Motors.e4, &Motors);
+	  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

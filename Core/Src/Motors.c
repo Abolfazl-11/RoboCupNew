@@ -7,14 +7,6 @@
 
 #include "Motors.h"
 
-MotorDef_t Motor_1 = {1, 2, GPIO_PIN_8, GPIOA};
-
-MotorDef_t Motor_2 = {1, 3, GPIO_PIN_4, GPIOA};
-
-MotorDef_t Motor_3 = {2, 4, GPIO_PIN_12, GPIOA};
-
-MotorDef_t Motor_4 = {1, 4, GPIO_PIN_6, GPIOA};
-
 void setPWM(MotorDef_t *Motor, uint32_t pwm, int en, Motors_t *Motors) {
 	switch(Motor->timer) {
 		case(1):
@@ -52,7 +44,7 @@ void setPWM(MotorDef_t *Motor, uint32_t pwm, int en, Motors_t *Motors) {
 // offset angle of each motor
 int offsets[] = {-45, -135, 135, 45};
 
-void GotoPoint(int teta, uint32_t speed, Motors_t *Motors) {
+void GotoPoint(int teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorDefs) {
 	for (int i = 0; i < 4; ++i) {
 		double t = teta + offsets[i];
 		double s = sin(t * DEG_TO_RAD) * speed;
@@ -62,32 +54,32 @@ void GotoPoint(int teta, uint32_t speed, Motors_t *Motors) {
 		if (en == 0) {
 			switch(i) {
 			case 0:
-				setPWM(&Motor_1, s, en, Motors);
+				setPWM(MotorDefs->Motor_1, s, en, Motors);
 				break;
 			case 1:
-				setPWM(&Motor_2, s, en, Motors);
+				setPWM(MotorDefs->Motor_2, s, en, Motors);
 				break;
 			case 2:
-				setPWM(&Motor_3, s, !en, Motors);
+				setPWM(MotorDefs->Motor_3, s, !en, Motors);
 				break;
 			case 3:
-				setPWM(&Motor_4, s, en, Motors);
+				setPWM(MotorDefs->Motor_4, s, en, Motors);
 				break;
 			}
 		}
 		else if (en == 1) {
 			switch(i) {
 				case 0:
-					setPWM(&Motor_1, s, en, Motors);
+					setPWM(MotorDefs->Motor_1, s, en, Motors);
 					break;
 				case 1:
-					setPWM(&Motor_2, s, en, Motors);
+					setPWM(MotorDefs->Motor_2, s, en, Motors);
 					break;
 				case 2:
-					setPWM(&Motor_3, s,!en, Motors);
+					setPWM(MotorDefs->Motor_3, s,!en, Motors);
 					break;
 				case 3:
-					setPWM(&Motor_4, s, en, Motors);
+					setPWM(MotorDefs->Motor_4, s, en, Motors);
 					break;
 			}
 		}
