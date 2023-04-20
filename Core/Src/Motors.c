@@ -99,3 +99,10 @@ void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorD
 //	setPWM(&Motor_1, s, en, Motors);
 //	setPWM(&Motor_3, s, en, Motors);
 }
+
+void AllMotorsZero(Motor_Defs *MotorDefs, Motors_t *Motors) {
+	setPWM(MotorDefs->Motor_1, 0, 0, Motors);
+	setPWM(MotorDefs->Motor_2, 0, 0, Motors);
+	setPWM(MotorDefs->Motor_3, 0, 0, Motors);
+	setPWM(MotorDefs->Motor_4, 0, 1, Motors);
+}

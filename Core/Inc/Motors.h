@@ -14,7 +14,9 @@
 #define INC_MOTORS_H_
 
 // max speed of motors will be this constant
-#define MAXSPEED 40
+#define MAXSPEED 35
+
+#define MAXROTATESPEED 20
 
 #define PI 3.14159265
 #define DEG_TO_RAD PI/180
@@ -55,4 +57,7 @@ void setPWM(MotorDef_t *Motor, uint32_t pwm, int en, Motors_t *Motors);
 // this function gets the teta and speed and set the speed of each motor
 // in a way that the robot will move in the angle of inputed teta
 void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorDefs);
+
+// this function sets the speed of all motors zero and stops the robot
+void AllMotorsZero(Motor_Defs *MotorDefs, Motors_t *Motors);
 #endif /* INC_MOTORS_H_ */
