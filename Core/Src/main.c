@@ -54,7 +54,9 @@ typedef struct GY {
 } GY;
 GY Gy = {0, 0, 0};
 
+
 // Motors Variables
+// For robot 1
 Motors_t Motors = {
 		0,
 		0,
@@ -65,6 +67,18 @@ Motors_t Motors = {
 		0,
 		0
 };
+
+// For robot 0
+//Motors_t Motors = {
+//		0,
+//		0,
+//		0,
+//		0,
+//		0,
+//		0,
+//		0,
+//		1
+//};
 
 MotorDef_t Motor_1 = {1, 2, GPIO_PIN_8, GPIOA};
 

@@ -101,8 +101,15 @@ void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorD
 }
 
 void AllMotorsZero(Motor_Defs *MotorDefs, Motors_t *Motors) {
+	// For robot 1
 	setPWM(MotorDefs->Motor_1, 0, 0, Motors);
 	setPWM(MotorDefs->Motor_2, 0, 1, Motors);
 	setPWM(MotorDefs->Motor_3, 0, 1, Motors);
 	setPWM(MotorDefs->Motor_4, 0, 0, Motors);
+
+	// For robot 0
+//	setPWM(MotorDefs->Motor_1, 0, 0, Motors);
+//	setPWM(MotorDefs->Motor_2, 0, 0, Motors);
+//	setPWM(MotorDefs->Motor_3, 0, 0, Motors);
+//	setPWM(MotorDefs->Motor_4, 0, 1, Motors);
 }
