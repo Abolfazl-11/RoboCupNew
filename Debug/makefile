@@ -34,34 +34,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := RoboCupNew
+BUILD_ARTIFACT_NAME := RoboCupNew1
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-RoboCupNew.elf \
+RoboCupNew1.elf \
 
 MAP_FILES += \
-RoboCupNew.map \
+RoboCupNew1.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-RoboCupNew.list \
+RoboCupNew1.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: RoboCupNew.elf secondary-outputs
+main-build: RoboCupNew1.elf secondary-outputs
 
 # Tool invocations
-RoboCupNew.elf RoboCupNew.map: $(OBJS) $(USER_OBJS) /media/sdb1/stm32/RoboCupNew/STM32F103R8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "RoboCupNew.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/media/sdb1/stm32/RoboCupNew/STM32F103R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RoboCupNew.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+RoboCupNew1.elf RoboCupNew1.map: $(OBJS) $(USER_OBJS) /media/sdb1/stm32/RoboCupNew1/STM32F103R8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "RoboCupNew1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/media/sdb1/stm32/RoboCupNew1/STM32F103R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RoboCupNew1.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +70,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-RoboCupNew.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "RoboCupNew.list"
+RoboCupNew1.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "RoboCupNew1.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) RoboCupNew.elf RoboCupNew.list RoboCupNew.map default.size.stdout
+	-$(RM) RoboCupNew1.elf RoboCupNew1.list RoboCupNew1.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)

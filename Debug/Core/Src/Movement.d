@@ -26,7 +26,7 @@ Core/Src/Movement.o: ../Core/Src/Movement.c ../Core/Inc/Movement.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Core/Inc/tim.h
+ ../Core/Inc/tim.h ../Core/Inc/SR04.h
 ../Core/Inc/Movement.h:
 ../Core/Inc/Motors.h:
 ../Core/Inc/main.h:
@@ -57,3 +57,4 @@ Core/Src/Movement.o: ../Core/Src/Movement.c ../Core/Inc/Movement.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Core/Inc/tim.h:
+../Core/Inc/SR04.h:

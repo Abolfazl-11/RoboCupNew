@@ -30,6 +30,7 @@
 #include "mpu6050.h"
 #include "Motors.h"
 #include "Movement.h"
+#include "SR04.h"
 
 /* USER CODE END Includes */
 
@@ -58,11 +59,11 @@ Motors_t Motors = {
 		0,
 		0,
 		0,
+		1,
 		0,
+		1,
 		0,
-		0,
-		0,
-		1
+		0
 };
 
 MotorDef_t Motor_1 = {1, 2, GPIO_PIN_8, GPIOA};
@@ -83,12 +84,33 @@ Motor_Defs MotorDefs = {
 // PID Control Derivative
 double pve = 0;
 
+// GetBall zones
 enum Zones zone = FAR;
+
+enum AttackZones attackZone = MIDDLE;
+
+// Defining SRs
+SRDef_t Sr_l = {GPIO_PIN_14, GPIOB, GPIO_PIN_15, GPIOB, 2};
+
+SRDef_t Sr_r = {GPIO_PIN_1, GPIOA, GPIO_PIN_2, GPIOA, 3};
+
+SRDef_t Sr_b = {GPIO_PIN_13, GPIOB, GPIO_PIN_12, GPIOB, 1};
+
+SRDef_t Sr_f = {GPIO_PIN_0, GPIOA, GPIO_PIN_15, GPIOC, 0};
+
+SRDatas_t SRDatas = {0, 0, 0, 0};
+
+SRDef_t *Srs[4] = {&Sr_f, &Sr_b, &Sr_l, &Sr_r};
 
 int MPUCollibrated = 0;
 
+int InGoal = 0;
+
+uint64_t noBallCounter = 0;
+uint64_t backToGoalCounter = 0;
+
 // counter for the timer
-uint32_t timcounter = 0;
+uint64_t timcounter = 0;
 
 /* USER CODE END PTD */
 
@@ -147,7 +169,7 @@ void ReadMPU6050() {
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	if(timcounter % 200 == 0 && pixyChecked) {
+	if(timcounter % 10 == 0 && pixyChecked) {
 		getBallPosition(&ballTransform, &ballInView);
 	}
 
@@ -155,9 +177,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		ReadMPU6050();
 	}
 
+	if((timcounter + 1) % 500 == 0) {
+		ReadAllSRs(Srs, 4, &SRDatas);
+	}
+
 	timcounter++;
 }
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -177,7 +202,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-   HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -216,19 +241,17 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 
-  SetupMPU6050(500);
+  SetupMPU6050(750);
 
   SetupPixy(&pixyChecked);
 
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
 	  if (abs(Gy.z) > 2) {
 		  RotateToZero(Gy.z, &pve, &Motors, &MotorDefs);
 	  }
@@ -239,9 +262,29 @@ int main(void)
 		  setPWM(&Motor_4, Motors.pwm4, Motors.e4, &Motors);
 	  }
 
+//	  if (zone == BALLIN) {
+//		  Attack(&Motors, &MotorDefs, &SRDatas, &attackZone, 35);
+//	  }
 	  if (ballInView) {
-		  GetBall(ballTransform.ballx, ballTransform.bally, 35, &zone, &Motors, &MotorDefs);
+		  GetBall(ballTransform.ballx, ballTransform.bally, 35, &zone, &Motors, &MotorDefs, &InGoal, &SRDatas);
+		  noBallCounter = 0;
 	  }
+
+	  if (!ballInView) {
+		  noBallCounter++;
+	  }
+
+	  if (noBallCounter >= 2250) {
+		  noBallCounter = 0;
+		  AllMotorsZero(&MotorDefs, &Motors);
+	  }
+
+//
+//	  if (InGoal && SRDatas.SR_b > 60) {
+//		  InGoal = 0;
+//	  }
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

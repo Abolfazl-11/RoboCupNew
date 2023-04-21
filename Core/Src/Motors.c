@@ -12,12 +12,12 @@ void setPWM(MotorDef_t *Motor, uint32_t pwm, int en, Motors_t *Motors) {
 		case(1):
 			switch(Motor->channel){
 				case(2):
-						TIM1->CCR2 = en * (100 - pwm) + !en * pwm;
+						TIM1->CCR2 = en * (100 - (pwm *1.1)) + !en * pwm;
 						Motors->pwm1 = pwm;
 						Motors->e1 = en;
 						break;
 				case(3):
-						TIM1->CCR3 = en * (100 - pwm) + !en * pwm;
+						TIM1->CCR3 = en * (100 - (pwm * 1.1)) + !en * pwm;
 						Motors->pwm2 = pwm;
 						Motors->e2 = en;
 						break;
@@ -57,13 +57,13 @@ void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorD
 				setPWM(MotorDefs->Motor_1, s, en, Motors);
 				break;
 			case 1:
-				setPWM(MotorDefs->Motor_2, s, en, Motors);
+				setPWM(MotorDefs->Motor_2, s, !en, Motors);
 				break;
 			case 2:
-				setPWM(MotorDefs->Motor_3, s, !en, Motors);
+				setPWM(MotorDefs->Motor_3, s, en, Motors);
 				break;
 			case 3:
-				setPWM(MotorDefs->Motor_4, s, en, Motors);
+				setPWM(MotorDefs->Motor_4, s, !en, Motors);
 				break;
 			}
 		}
@@ -73,13 +73,13 @@ void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorD
 					setPWM(MotorDefs->Motor_1, s, en, Motors);
 					break;
 				case 1:
-					setPWM(MotorDefs->Motor_2, s, en, Motors);
+					setPWM(MotorDefs->Motor_2, s, !en, Motors);
 					break;
 				case 2:
-					setPWM(MotorDefs->Motor_3, s,!en, Motors);
+					setPWM(MotorDefs->Motor_3, s, en, Motors);
 					break;
 				case 3:
-					setPWM(MotorDefs->Motor_4, s, en, Motors);
+					setPWM(MotorDefs->Motor_4, s, !en, Motors);
 					break;
 			}
 		}
@@ -102,7 +102,7 @@ void GotoPoint(double teta, uint32_t speed, Motors_t *Motors, Motor_Defs *MotorD
 
 void AllMotorsZero(Motor_Defs *MotorDefs, Motors_t *Motors) {
 	setPWM(MotorDefs->Motor_1, 0, 0, Motors);
-	setPWM(MotorDefs->Motor_2, 0, 0, Motors);
-	setPWM(MotorDefs->Motor_3, 0, 0, Motors);
-	setPWM(MotorDefs->Motor_4, 0, 1, Motors);
+	setPWM(MotorDefs->Motor_2, 0, 1, Motors);
+	setPWM(MotorDefs->Motor_3, 0, 1, Motors);
+	setPWM(MotorDefs->Motor_4, 0, 0, Motors);
 }

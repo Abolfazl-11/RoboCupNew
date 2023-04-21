@@ -45,23 +45,20 @@ void getBallPosition(BallTransform *ball_transform, int *ballInView) {
 	HAL_SPI_Transmit(&hspi1, getBlocks, 6, 1000);
 	HAL_Delay(1);
 	HAL_SPI_Receive(&hspi1, buffer_rx, 8, 1000); //garbage values
-	HAL_SPI_Receive(&hspi1, buffer_rx, 4, 1000);
+	HAL_SPI_Receive(&hspi1, buffer_rx, 18, 1000);
 
 	// checking if the length received data is 14 and the
 	// ball is in the view and return from the function if it's not
 	if (buffer_rx[3] != 14) {
-		ballInView = 0;
+		*ballInView = 0;
 		return;
 	}
 
-	// if the length of the data is 14 will receive the 14 remaining bytes
-	HAL_SPI_Receive(&hspi1, buffer_rx, 14, 1000);
-
 	// saving the received data into the stuct
-	ball_transform->ballx = buffer_rx[4] + buffer_rx[5] * 255;
-	ball_transform->bally = buffer_rx[6] + buffer_rx[7] * 255;
-	ball_transform->ballWidth = buffer_rx[8] + buffer_rx[9] * 255;
-	ball_transform->ballHeight = buffer_rx[10] + buffer_rx[11] * 255;
+	ball_transform->ballx = buffer_rx[8] + buffer_rx[9] * 255;
+	ball_transform->bally = buffer_rx[10] + buffer_rx[11] * 255;
+	ball_transform->ballWidth = buffer_rx[12] + buffer_rx[13] * 255;
+	ball_transform->ballHeight = buffer_rx[14] + buffer_rx[15] * 255;
 
 	// cropping the received ball position to be only in the mirror
 	if (!(ball_transform->ballx > PIXY_X_MIN && ball_transform->ballx < PIXY_X_MAX)) {
