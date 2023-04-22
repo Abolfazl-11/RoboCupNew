@@ -32,6 +32,8 @@
 #include "Movement.h"
 #include "SR04.h"
 
+int SR_Read_TIM = 500;
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,6 +125,16 @@ int InGoal = 0;
 uint64_t noBallCounter = 0;
 uint64_t backToGoalCounter = 0;
 
+enum OutState { IN, OUT, HALTED };
+
+enum OutState outState = IN;
+
+int out_interrupt = 0;
+
+int outDir = 0;
+
+int backingToGoal = 0;
+
 // counter for the timer
 uint64_t timcounter = 0;
 
@@ -191,12 +203,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		ReadMPU6050();
 	}
 
-	if((timcounter + 1) % 500 == 0) {
+	if((timcounter + 1) % SR_Read_TIM == 0) {
 		ReadAllSRs(Srs, 4, &SRDatas);
 	}
 
 	timcounter++;
 }
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == GPIO_PIN_1) {
+		//out_interrupt = 1;
+	}
+}
+
+void ReadOutDirection() {
+	outDir += 100 * HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0);
+	outDir += 10 * HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2);
+	outDir += HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7);
+}
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -211,6 +236,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	int teta;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -266,37 +292,95 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (abs(Gy.z) > 2) {
-		  RotateToZero(Gy.z, &pve, &Motors, &MotorDefs);
+	  if (out_interrupt) {
+		  outState = OUT;
+		  ReadOutDirection();
+		  out_interrupt = 0;
 	  }
-	  else {
-		  setPWM(&Motor_1, Motors.pwm1, Motors.e1, &Motors);
-		  setPWM(&Motor_2, Motors.pwm2, Motors.e2, &Motors);
-		  setPWM(&Motor_3, Motors.pwm3, Motors.e3, &Motors);
-		  setPWM(&Motor_4, Motors.pwm4, Motors.e4, &Motors);
-	  }
+	  switch(outState) {
+	  case IN:
+		  if (abs(Gy.z) > 2) {
+			  RotateToZero(Gy.z, &pve, &Motors, &MotorDefs);
+		  }
+		  else {
+			  setPWM(&Motor_1, Motors.pwm1, Motors.e1, &Motors);
+			  setPWM(&Motor_2, Motors.pwm2, Motors.e2, &Motors);
+			  setPWM(&Motor_3, Motors.pwm3, Motors.e3, &Motors);
+			  setPWM(&Motor_4, Motors.pwm4, Motors.e4, &Motors);
+		  }
 
-//	  if (zone == BALLIN) {
-//		  Attack(&Motors, &MotorDefs, &SRDatas, &attackZone, 35);
-//	  }
-	  if (ballInView) {
-		  GetBall(ballTransform.ballx, ballTransform.bally, 35, &zone, &Motors, &MotorDefs, &InGoal, &SRDatas);
-		  noBallCounter = 0;
-	  }
+	//	  if (zone == BALLIN) {
+	//		  Attack(&Motors, &MotorDefs, &SRDatas, &attackZone, 35);
+	//	  }
+		  if (ballInView) {
+			  GetBall(ballTransform.ballx, ballTransform.bally, 35, &zone, &Motors, &MotorDefs, &InGoal, &SRDatas);
+			  noBallCounter = 0;
+			  backToGoalCounter = 0;
+			  SR_Read_TIM = 500;
+			  backingToGoal = 0;
+		  }
 
-	  if (!ballInView) {
-		  noBallCounter++;
-	  }
+		  if (!ballInView) {
+			  noBallCounter++;
+		  }
 
-	  if (noBallCounter >= 2250) {
-		  noBallCounter = 0;
+		  if (noBallCounter >= 13500) {
+			  noBallCounter = 0;
+			  AllMotorsZero(&MotorDefs, &Motors);
+			  backToGoalCounter++;
+
+		  }
+
+		  if (!InGoal && SRDatas.SR_b < GOALDIS_TH && backingToGoal) {
+		  		InGoal = 1;
+		  		AllMotorsZero(&MotorDefs, &Motors);
+		  }
+
+	//	   For robot 0
+		  if (backToGoalCounter >= 2) {
+			  backToGoalCounter = 0;
+			  if (!InGoal) BackToGoal(&Motors, &MotorDefs, &InGoal, &SRDatas);
+			  backingToGoal = 1;
+			  SR_Read_TIM = 200;
+		  }
+
+
+		  if (InGoal && SRDatas.SR_b > GOALDIS_TH) {
+			  InGoal = 0;
+		  }
+		  break;
+	  case OUT:
 		  AllMotorsZero(&MotorDefs, &Motors);
+		  outState = HALTED;
+		  break;
+	  case HALTED:
+		  if (ballTransform.ballx >= 0) teta = -(atan((double)ballTransform.bally / ballTransform.ballx) * RAD_TO_DEG - 90);
+		  else if (ballTransform.ballx < 0) teta = -((atan((double)ballTransform.bally / ballTransform.ballx) + PI)* RAD_TO_DEG - 90);
+
+		  switch (outDir) {
+		  case 000:
+			  if(abs(teta) > 90) {
+				  outState = IN;
+			  }
+			  break;
+		  case 001:
+			  if(abs(teta) < 90) {
+				  outState = IN;
+			  }
+			  break;
+		  case 010:
+			  if(teta < -10 && teta > -170) {
+				  outState = IN;
+			  }
+			  break;
+		  case 011:
+			  if(teta > 10 && teta < 170) {
+				  outState = IN;
+			  }
+			  break;
+		  }
 	  }
 
-//
-//	  if (InGoal && SRDatas.SR_b > 60) {
-//		  InGoal = 0;
-//	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

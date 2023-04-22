@@ -1,3 +1,3 @@
 ../Core/Src/SR04.c:10:6:delay_us	16	static
-../Core/Src/SR04.c:15:6:ReadSR	16	static
-../Core/Src/SR04.c:46:6:ReadAllSRs	32	static
+../Core/Src/SR04.c:15:6:ReadSR	24	static
+../Core/Src/SR04.c:49:6:ReadAllSRs	32	static

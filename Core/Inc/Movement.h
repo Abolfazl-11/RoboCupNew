@@ -24,6 +24,8 @@
 #define GETBALLANGLE_TH 11
 #define ATTACKZONE_TH 20
 
+#define GOALDIS_TH 70
+
 // this enum indicates the current zone of the robot
 // related to the ball position
 // FAR : the ball is farther than the "ZONEDIS_TH"

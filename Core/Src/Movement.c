@@ -148,7 +148,7 @@ void GetBall(int x, int y, uint32_t speed, enum Zones *zone, Motors_t *Motors, M
 
 void BackToGoal(Motors_t *Motors, Motor_Defs *MotorDefs, int *GoalCheck,SRDatas_t *SRDatas) {
 	GotoPoint(-180, 30, Motors, MotorDefs);
-	if (SRDatas->SR_b <= 60) {
+	if (SRDatas->SR_b <= GOALDIS_TH) {
 		*GoalCheck = 1;
 		AllMotorsZero(MotorDefs, Motors);
 	}
