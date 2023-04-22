@@ -130,6 +130,7 @@ enum OutState { IN, OUT, HALTED };
 enum OutState outState = IN;
 
 int out_interrupt = 0;
+int out_interrupt_counter = 0;
 
 int outDir = 0;
 
@@ -211,21 +212,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == GPIO_PIN_1) {
-		//out_interrupt = 1;
+	if (GPIO_Pin == GPIO_PIN_2) {
+		out_interrupt = 1;
+		out_interrupt_counter++;
 	}
 }
 
 void ReadOutDirection() {
-	outDir += 100 * HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0);
-	outDir += 10 * HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2);
-	outDir += HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7);
+	outDir = 0;
+	outDir += 10 * !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7);
+	outDir += !HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
 }
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int teta;
 
 /* USER CODE END 0 */
 
@@ -236,7 +239,6 @@ void ReadOutDirection() {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	int teta;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -265,6 +267,8 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_Delay(1000);
+
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_Base_Start(&htim2);
   HAL_TIM_Base_Start(&htim3);
@@ -281,11 +285,16 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 
+  HAL_Delay(200);
+
   SetupMPU6050(750);
 
   SetupPixy(&pixyChecked);
 
+  HAL_Delay(200);
+
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -294,7 +303,6 @@ int main(void)
   {
 	  if (out_interrupt) {
 		  outState = OUT;
-		  ReadOutDirection();
 		  out_interrupt = 0;
 	  }
 	  switch(outState) {
@@ -350,34 +358,41 @@ int main(void)
 		  }
 		  break;
 	  case OUT:
-		  AllMotorsZero(&MotorDefs, &Motors);
+		  if (out_interrupt_counter == 1) {
+			  AllMotorsZero(&MotorDefs, &Motors);
+			  ReadOutDirection();
+		  }
 		  outState = HALTED;
 		  break;
 	  case HALTED:
-		  if (ballTransform.ballx >= 0) teta = -(atan((double)ballTransform.bally / ballTransform.ballx) * RAD_TO_DEG - 90);
-		  else if (ballTransform.ballx < 0) teta = -((atan((double)ballTransform.bally / ballTransform.ballx) + PI)* RAD_TO_DEG - 90);
+		  if (ballInView) {
+			  if (ballTransform.ballx >= 0) teta = -(atan((double)ballTransform.bally / ballTransform.ballx) * RAD_TO_DEG - 90);
+			  else if (ballTransform.ballx < 0) teta = -((atan((double)ballTransform.bally / ballTransform.ballx) + PI)* RAD_TO_DEG - 90);
 
-		  switch (outDir) {
-		  case 000:
-			  if(abs(teta) > 90) {
-				  outState = IN;
+			  switch (outDir) {
+			  case 0:
+				  // front
+				  if(abs(teta) > 90) {
+					  outState = IN;
+				  }
+				  break;
+			  case 1:
+				  //back
+				  if(abs(teta) < 90) {
+					  outState = IN;
+				  }
+				  break;
+			  case 10:
+				  if(teta < -10 && teta > -170) {
+					  outState = IN;
+				  }
+				  break;
+			  case 11:
+				  if(teta > 10 && teta < 170) {
+					  outState = IN;
+				  }
+				  break;
 			  }
-			  break;
-		  case 001:
-			  if(abs(teta) < 90) {
-				  outState = IN;
-			  }
-			  break;
-		  case 010:
-			  if(teta < -10 && teta > -170) {
-				  outState = IN;
-			  }
-			  break;
-		  case 011:
-			  if(teta > 10 && teta < 170) {
-				  outState = IN;
-			  }
-			  break;
 		  }
 	  }
 
