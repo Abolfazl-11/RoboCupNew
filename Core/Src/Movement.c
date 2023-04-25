@@ -29,7 +29,10 @@ void RotateToZero(double e, double *pve, Motors_t *Motors, Motor_Defs *MotorDefs
 		}
 		else if (u < Motors->pwm1) {
 			stmp = Motors->pwm1;
+			// for robot 0
 			setPWM(MotorDefs->Motor_1, Motors->pwm1 - (pow(-1, Motors->e1) * u), Motors->e1, Motors);
+			// for robot 1
+//			setPWM(MotorDefs->Motor_1, Motors->pwm1 - (pow(-1, !Motors->e1) * u), Motors->e1, Motors);
 			Motors->pwm1 = stmp;
 		}
 
@@ -42,12 +45,15 @@ void RotateToZero(double e, double *pve, Motors_t *Motors, Motor_Defs *MotorDefs
 		}
 		else if (u < Motors->pwm2) {
 			stmp = Motors->pwm2;
-			setPWM(MotorDefs->Motor_2, Motors->pwm2 - (pow(-1, Motors->e2) * u), Motors->e2, Motors);
+			setPWM(MotorDefs->Motor_2, Motors->pwm2 - (pow(-1, !Motors->e2) * u), Motors->e2, Motors);
 			Motors->pwm2 = stmp;
 		}
 
 		// Setting Motor_3 speed
 		stmp = Motors->pwm3;
+		// for robot 1
+//		setPWM(MotorDefs->Motor_3, Motors->pwm3 + (pow(-1, Motors->e3) * u), Motors->e3, Motors);
+		// for robot 0
 		setPWM(MotorDefs->Motor_3, Motors->pwm3 + (pow(-1, !Motors->e3) * u), Motors->e3, Motors);
 		Motors->pwm3 = stmp;
 
@@ -85,7 +91,10 @@ void RotateToZero(double e, double *pve, Motors_t *Motors, Motor_Defs *MotorDefs
 
 		// Setting Motor_1 speed
 		stmp = Motors->pwm1;
+		// for robot 0
 		setPWM(MotorDefs->Motor_1, Motors->pwm1 + (pow(-1, Motors->e1) * u), Motors->e1, Motors);
+		// for robot 1
+//		setPWM(MotorDefs->Motor_1, Motors->pwm1 + (pow(-1, !Motors->e1) * u), Motors->e1, Motors);
 		Motors->pwm1 = stmp;
 
 		// Setting Motor_2 speed
@@ -131,10 +140,10 @@ void GetBall(int x, int y, uint32_t speed, enum Zones *zone, Motors_t *Motors, M
 		break;
 	case CLOSE:
 		if (teta >= 0) {
-			GotoPoint(teta + 30, speed, Motors, MotorDefs);
+			GotoPoint(teta + GETBALLANGLE, speed, Motors, MotorDefs);
 		}
 		else {
-			GotoPoint(teta - 30, speed, Motors, MotorDefs);
+			GotoPoint(teta - GETBALLANGLE, speed, Motors, MotorDefs);
 		}
 		break;
 	case BALLIN:
@@ -147,34 +156,62 @@ void GetBall(int x, int y, uint32_t speed, enum Zones *zone, Motors_t *Motors, M
 }
 
 void BackToGoal(Motors_t *Motors, Motor_Defs *MotorDefs, int *GoalCheck,SRDatas_t *SRDatas) {
-	GotoPoint(-180, 30, Motors, MotorDefs);
+	if (abs(SRDatas->SR_l - SRDatas->SR_r) > ATTACKZONE_TH) {
+		if (SRDatas->SR_l > SRDatas->SR_r) {
+			GotoPoint(-170, 25, Motors, MotorDefs);
+		}
+		else {
+			GotoPoint(170, 25, Motors, MotorDefs);
+		}
+	} else {
+		GotoPoint(-180, 30, Motors, MotorDefs);
+	}
 	if (SRDatas->SR_b <= GOALDIS_TH) {
 		*GoalCheck = 1;
 		AllMotorsZero(MotorDefs, Motors);
 	}
 }
 
-void Attack(Motors_t *Motors, Motor_Defs *MotorDefs, SRDatas_t *SRDatas, enum AttackZones *attackZone, int speed) {
-//	if (abs(SRDatas->SR_l - SRDatas->SR_r) > ATTACKZONE_TH) {
-//		if (SRDatas->SR_l > SRDatas->SR_r) {
-//			*attackZone = RIGHT;
-//		}
-//		else {
-//			*attackZone = LEFT;
-//		}
-//	} else {
-//		*attackZone = MIDDLE;
-//	}
+void Attack(int x, int y, Motors_t *Motors, Motor_Defs *MotorDefs, SRDatas_t *SRDatas, enum Zones *zone, enum AttackZones *attackZone, int speed) {
+	double teta;
+	double r;
+
+	if (x >= 0) teta = -(atan((double)y / x) * RAD_TO_DEG - 90);
+	else if (x < 0) teta = -((atan((double)y/ x) + PI)* RAD_TO_DEG - 90);
+	r = sqrt(x * x + y * y);
+
+	if (r >= ZONEDIS_TH) {
+		*zone = FAR;
+		return;
+	}
+	else if (r < ZONEDIS_TH) {
+		if (abs(teta) > AGETBALLANGLE_TH) {
+			*zone = CLOSE;
+			return;
+		}
+		else {
+			if (abs(SRDatas->SR_l - SRDatas->SR_r) > ATTACKZONE_TH) {
+				if (SRDatas->SR_l > SRDatas->SR_r) {
+					*attackZone = RIGHT;
+				}
+				else {
+					*attackZone = LEFT;
+				}
+			} else {
+				*attackZone = MIDDLE;
+			}
+		}
+	}
 
 	switch (*attackZone) {
 	case MIDDLE:
 		GotoPoint(0, speed, Motors, MotorDefs);
 		break;
 	case RIGHT:
-		GotoPoint(-10, speed, Motors, MotorDefs);
+		GotoPoint(-ATTACKANGLE, speed, Motors, MotorDefs);
 		break;
 	case LEFT:
-		GotoPoint(10, speed, Motors, MotorDefs);
+		GotoPoint(ATTACKANGLE, speed, Motors, MotorDefs);
 		break;
 	}
 }

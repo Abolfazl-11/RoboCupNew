@@ -14,7 +14,7 @@
 #define INC_MOTORS_H_
 
 // max speed of motors will be this constant
-#define MAXSPEED 35
+#define MAXSPEED 30
 
 #define MAXROTATESPEED 20
 

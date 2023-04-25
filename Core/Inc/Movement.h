@@ -14,17 +14,19 @@
 #define INC_MOVEMENT_H_
 
 #define Kp 2.1
-#define Ki 1.5
-#define Kd 1.6
+#define Ki 0
+#define Kd 1
 
 #define TIME 0.000048
-#define MAXROTATESPEED 20
 
-#define ZONEDIS_TH 50
-#define GETBALLANGLE_TH 11
-#define ATTACKZONE_TH 20
+#define ZONEDIS_TH 65
+#define GETBALLANGLE_TH 12
+#define AGETBALLANGLE_TH 14
+#define ATTACKZONE_TH 75
+#define ATTACKANGLE 10
+#define GETBALLANGLE 35
 
-#define GOALDIS_TH 70
+#define GOALDIS_TH 110
 
 // this enum indicates the current zone of the robot
 // related to the ball position
@@ -48,6 +50,6 @@ void BackToGoal(Motors_t *Motors, Motor_Defs *MotorDefs, int *GoalCheck, SRDatas
 
 // This function is called when the robot gets the ball and is ready to
 // attack and score a GOAL!
-void Attack(Motors_t *Motors, Motor_Defs *MotorDefs, SRDatas_t *SRDatas, enum AttackZones *attackZone, int speed);
+void Attack(int x, int y, Motors_t *Motors, Motor_Defs *MotorDefs, SRDatas_t *SRDatas,enum Zones *zone, enum AttackZones *attackZone, int speed);
 
 #endif /* INC_MOVEMENT_H_ */

@@ -10,8 +10,8 @@
 #ifndef INC_PIXY_H_
 #define INC_PIXY_H_
 
-#define PIXY_Y_ZERO 122
-#define PIXY_X_ZERO 158
+#define PIXY_Y_ZERO 112
+#define PIXY_X_ZERO 162
 #define PIXY_X_MIN 83
 #define PIXY_X_MAX 230
 #define PIXY_Y_MIN 51

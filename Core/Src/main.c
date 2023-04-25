@@ -34,6 +34,17 @@
 
 int SR_Read_TIM = 500;
 
+#define FRONTOUTOFHALT 100
+#define BACKOUTOFHALT 80
+#define LEFTOUTOFHALTMIN 45
+#define LEFTOUTOFHALTMAX 170
+#define RIGHTOUTOFHALTMIN -45
+#define RIGHTOUTOFHALTMAX -170
+
+// for robot 0
+#define noBallCounterL 15000
+// for robot 1
+//#define noBallCounterL 16500
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +69,7 @@ GY Gy = {0, 0, 0};
 
 
 // Motors Variables
-// For robot 1
+// For robot 0
 Motors_t Motors = {
 		0,
 		0,
@@ -70,16 +81,16 @@ Motors_t Motors = {
 		0
 };
 
-// For robot 0
+// For robot 1
 //Motors_t Motors = {
 //		0,
+//		1,
+//		0,
+//		1,
 //		0,
 //		0,
 //		0,
-//		0,
-//		0,
-//		0,
-//		1
+//		0
 //};
 
 MotorDef_t Motor_1 = {1, 2, GPIO_PIN_8, GPIOA};
@@ -106,9 +117,9 @@ enum Zones zone = FAR;
 enum AttackZones attackZone = MIDDLE;
 
 // Defining SRs
-SRDef_t Sr_l = {GPIO_PIN_14, GPIOB, GPIO_PIN_15, GPIOB, 2};
+SRDef_t Sr_r = {GPIO_PIN_14, GPIOB, GPIO_PIN_15, GPIOB, 3};
 
-SRDef_t Sr_r = {GPIO_PIN_1, GPIOA, GPIO_PIN_2, GPIOA, 3};
+SRDef_t Sr_l = {GPIO_PIN_1, GPIOA, GPIO_PIN_2, GPIOA, 2};
 
 SRDef_t Sr_b = {GPIO_PIN_13, GPIOB, GPIO_PIN_12, GPIOB, 1};
 
@@ -212,7 +223,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == GPIO_PIN_2) {
+	if (GPIO_Pin == GPIO_PIN_2 && outState == IN) {
 		out_interrupt = 1;
 		out_interrupt_counter++;
 	}
@@ -242,9 +253,7 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -294,7 +303,6 @@ int main(void)
   HAL_Delay(200);
 
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -308,7 +316,7 @@ int main(void)
 	  switch(outState) {
 	  case IN:
 		  if (abs(Gy.z) > 2) {
-			  RotateToZero(Gy.z, &pve, &Motors, &MotorDefs);
+			  //RotateToZero(Gy.z, &pve, &Motors, &MotorDefs);
 		  }
 		  else {
 			  setPWM(&Motor_1, Motors.pwm1, Motors.e1, &Motors);
@@ -317,14 +325,13 @@ int main(void)
 			  setPWM(&Motor_4, Motors.pwm4, Motors.e4, &Motors);
 		  }
 
-	//	  if (zone == BALLIN) {
-	//		  Attack(&Motors, &MotorDefs, &SRDatas, &attackZone, 35);
-	//	  }
+		  if (zone == BALLIN) {
+			  Attack(ballTransform.ballx, ballTransform.bally, &Motors, &MotorDefs, &SRDatas, &zone, &attackZone, 25);
+		  }
 		  if (ballInView) {
-			  GetBall(ballTransform.ballx, ballTransform.bally, 35, &zone, &Motors, &MotorDefs, &InGoal, &SRDatas);
+			  GetBall(ballTransform.ballx, ballTransform.bally, 25, &zone, &Motors, &MotorDefs, &InGoal, &SRDatas);
 			  noBallCounter = 0;
 			  backToGoalCounter = 0;
-			  SR_Read_TIM = 500;
 			  backingToGoal = 0;
 		  }
 
@@ -332,35 +339,37 @@ int main(void)
 			  noBallCounter++;
 		  }
 
-		  if (noBallCounter >= 13500) {
+		  if (noBallCounter >= noBallCounterL) {
 			  noBallCounter = 0;
 			  AllMotorsZero(&MotorDefs, &Motors);
 			  backToGoalCounter++;
 
 		  }
 
-		  if (!InGoal && SRDatas.SR_b < GOALDIS_TH && backingToGoal) {
-		  		InGoal = 1;
-		  		AllMotorsZero(&MotorDefs, &Motors);
-		  }
-
-	//	   For robot 0
-		  if (backToGoalCounter >= 2) {
-			  backToGoalCounter = 0;
-			  if (!InGoal) BackToGoal(&Motors, &MotorDefs, &InGoal, &SRDatas);
-			  backingToGoal = 1;
-			  SR_Read_TIM = 200;
-		  }
-
-
-		  if (InGoal && SRDatas.SR_b > GOALDIS_TH) {
-			  InGoal = 0;
-		  }
+		  // Back To Goal : For keeper
+//		  if (!InGoal && SRDatas.SR_b < GOALDIS_TH && backingToGoal) {
+//		  		InGoal = 1;
+//		  		AllMotorsZero(&MotorDefs, &Motors);
+//		  }
+//
+//	//	   For robot 1
+//		  if (backToGoalCounter >= 2) {
+//			  backToGoalCounter = 0;
+//			  if (!InGoal) BackToGoal(&Motors, &MotorDefs, &InGoal, &SRDatas);
+//			  backingToGoal = 1;
+//			  SR_Read_TIM = 200;
+//		  }
+//
+//
+//		  if (InGoal && SRDatas.SR_b > GOALDIS_TH) {
+//			  InGoal = 0;
+//		  }
 		  break;
 	  case OUT:
-		  if (out_interrupt_counter == 1) {
-			  AllMotorsZero(&MotorDefs, &Motors);
-			  ReadOutDirection();
+		  AllMotorsZero(&MotorDefs, &Motors);
+		  ReadOutDirection();
+		  if(SRDatas.SR_f <= 155 && SRDatas.SR_b >= 450) {
+			  outDir = 0;
 		  }
 		  outState = HALTED;
 		  break;
@@ -372,24 +381,31 @@ int main(void)
 			  switch (outDir) {
 			  case 0:
 				  // front
-				  if(abs(teta) > 90) {
+				  outState = IN;
+				  if(abs(teta) > FRONTOUTOFHALT) {
 					  outState = IN;
+					  out_interrupt_counter = 0;
 				  }
 				  break;
 			  case 1:
 				  //back
-				  if(abs(teta) < 90) {
+				  if(abs(teta) < BACKOUTOFHALT) {
 					  outState = IN;
+					  out_interrupt_counter = 0;
 				  }
 				  break;
 			  case 10:
-				  if(teta < -10 && teta > -170) {
+				  // RIGHT
+				  if(teta < RIGHTOUTOFHALTMIN && teta > RIGHTOUTOFHALTMAX) {
 					  outState = IN;
+					  out_interrupt_counter = 0;
 				  }
 				  break;
 			  case 11:
-				  if(teta > 10 && teta < 170) {
+				  // LEFT
+				  if(teta > LEFTOUTOFHALTMIN && teta < LEFTOUTOFHALTMAX) {
 					  outState = IN;
+					  out_interrupt_counter = 0;
 				  }
 				  break;
 			  }
